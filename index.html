@@ -1,0 +1,469 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Sản Phẩm - NNPTUD Buổi 3</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        /* Controls Section */
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-item label {
+            font-weight: 500;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        .filter-item select {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+            min-width: 150px;
+            transition: border-color 0.3s;
+        }
+
+        .filter-item select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .filter-item select:hover {
+            border-color: #aaa;
+        }
+
+        /* Table Styling */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 400px; /* Giữ chiều cao tối thiểu để tránh nháy */
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed; /* Cố định layout bảng */
+        }
+
+        thead {
+            background: #343a40;
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            vertical-align: middle;
+        }
+
+        /* Alternating row colors - đen và trắng */
+        tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+            color: #333;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #2c2c2c;
+            color: #fff;
+        }
+
+        /* Hiệu ứng hover cho dòng sản phẩm */
+        tbody tr {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            color: white !important;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        tbody tr:hover td {
+            border-color: transparent;
+        }
+
+        tbody tr:hover .product-image {
+            transform: scale(1.1) rotate(3deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        tbody tr:hover .product-price {
+            color: #fff !important;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        tbody tr:hover .product-category {
+            background: rgba(255,255,255,0.2) !important;
+            color: white !important;
+        }
+
+        /* Product Image - Thêm hiệu ứng để giảm nháy */
+        .product-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            background-color: #f0f0f0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Ẩn hình khi đang load */
+        .product-image[src=""] {
+            opacity: 0;
+        }
+
+        .product-title {
+            font-weight: 600;
+            max-width: 250px;
+        }
+
+        .product-price {
+            font-weight: bold;
+            color: #28a745;
+        }
+
+        tbody tr:nth-child(even) .product-price {
+            color: #90EE90;
+        }
+
+        .product-category {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #e9ecef;
+            border-radius: 15px;
+            font-size: 12px;
+            color: #495057;
+        }
+
+        tbody tr:nth-child(even) .product-category {
+            background: #555;
+            color: #fff;
+        }
+
+        /* Ảnh phụ trong cột Chi Tiết */
+        .sub-images-cell {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sub-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 5px;
+            border: 2px solid #ddd;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sub-image:hover {
+            transform: scale(1.5);
+            z-index: 10;
+            border-color: #007bff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        tbody tr:nth-child(even) .sub-image {
+            border-color: #555;
+        }
+
+        tbody tr:hover .sub-image {
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .no-sub-images {
+            font-size: 11px;
+            color: #999;
+            font-style: italic;
+        }
+
+        tbody tr:nth-child(even) .no-sub-images {
+            color: #aaa;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 20px;
+            background: white;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            background: #007bff;
+            color: white;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #0056b3;
+        }
+
+        .pagination button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .pagination .page-info {
+            font-weight: 500;
+            color: #555;
+            padding: 10px 20px;
+        }
+
+        .page-numbers {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .page-numbers button {
+            padding: 10px 15px;
+            min-width: 45px;
+        }
+
+        .page-numbers button.active {
+            background: #343a40;
+        }
+
+        .page-dots {
+            padding: 10px 8px;
+            color: #666;
+            font-weight: bold;
+            user-select: none;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        /* Results info */
+        .results-info {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            color: #666;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .sort-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            .product-image {
+                width: 60px;
+                height: 60px;
+            }
+
+            th, td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1> Dashboard Sản Phẩm</h1>
+        
+        <!-- Controls -->
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder=" Tìm kiếm theo tên sản phẩm..." oninput="handleSearch()">
+            </div>
+            
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label for="categoryFilter"> Danh mục:</label>
+                    <select id="categoryFilter" onchange="handleCategoryFilter()">
+                        <option value="">-- Tất cả --</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="priceSort">Giá:</label>
+                    <select id="priceSort" onchange="handlePriceSort()">
+                        <option value="">-- Chọn --</option>
+                        <option value="asc">Tăng dần</option>
+                        <option value="desc">Giảm dần</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="nameSort">Tên:</label>
+                    <select id="nameSort" onchange="handleNameSort()">
+                        <option value="">-- Chọn --</option>
+                        <option value="asc">A - Z</option>
+                        <option value="desc">Z - A</option>
+                    </select>
+                </div>
+                
+                <div class="filter-item">
+                    <label for="pageSize">Hiển thị:</label>
+                    <select id="pageSize" onchange="changePageSize()">
+                        <option value="5">5 sản phẩm</option>
+                        <option value="10" selected>10 sản phẩm</option>
+                        <option value="20">20 sản phẩm</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="results-info" id="resultsInfo">
+                Đang tải dữ liệu...
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Hình Ảnh</th>
+                        <th>Tên Sản Phẩm</th>
+                        <th>Giá ($)</th>
+                        <th>Danh Mục</th>
+                        <th>Mô Tả</th>
+                        <th>Chi Tiết</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    <tr>
+                        <td colspan="7" class="loading">Đang tải dữ liệu</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination">
+            <button id="prevBtn" onclick="changePage(-1)">« Trước</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <span class="page-info" id="pageInfo">Trang 1 / 1</span>
+            <button id="nextBtn" onclick="changePage(1)">Sau »</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
